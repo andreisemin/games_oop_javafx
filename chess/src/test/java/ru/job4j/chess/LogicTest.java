@@ -1,6 +1,5 @@
 package ru.job4j.chess;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import ru.job4j.chess.firuges.Cell;
 import ru.job4j.chess.firuges.black.BishopBlack;
@@ -8,8 +7,6 @@ import ru.job4j.chess.firuges.Figure;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.Assert.assertEquals;
-
 
 public class LogicTest {
 
@@ -18,55 +15,38 @@ public class LogicTest {
             throws FigureNotFoundException, OccupiedCellException, ImpossibleMoveException {
         Logic logic = new Logic();
         FigureNotFoundException exception = assertThrows(FigureNotFoundException.class, () -> {
-            logic.move(Cell.C8, Cell.H4);
+            logic.move(Cell.C1, Cell.H6);
         });
         assertThat(exception.getMessage()).isEqualTo("Figure not found on the board.");
     }
 
     @Test
-    public void testMoveFigureNotFound() {
+    public void whenMoveThenImpossibleMoveException() {
         Logic logic = new Logic();
-        Figure figure = new BishopBlack(Cell.C8);
+        Cell start = Cell.C1;
+        Cell dest = Cell.C2;
+        Figure figure = new BishopBlack(start);
         logic.add(figure);
-        try {
-            logic.move(Cell.A8, Cell.A7);
-            fail("Should throw FigureNotFoundException");
-        } catch (FigureNotFoundException e) {
-            assertEquals("Figure not found on the board.", e.getMessage());
-        } catch (Exception e) {
-            fail("Should throw FigureNotFoundException");
-        }
+        ImpossibleMoveException exception = assertThrows(ImpossibleMoveException.class, () -> {
+            logic.move(start, dest);
+        });
+        assertThat(exception.getMessage())
+                .isEqualTo("Could not way by diagonal from %s to %s", start, dest);
     }
 
     @Test
-    public void testMoveImpossibleMove() {
+    public void whenMoveThenOccupiedCellException() {
         Logic logic = new Logic();
-        Figure figure = new BishopBlack(Cell.C8);
+        Cell start = Cell.C1;
+        Cell dest = Cell.E3;
+        Figure figure = new BishopBlack(start);
+        Figure secondFigure = new BishopBlack(Cell.D2);
         logic.add(figure);
-        try {
-            logic.move(Cell.C8, Cell.C7);
-            fail("Should throw ImpossibleMoveException");
-        } catch (ImpossibleMoveException e) {
-            assertEquals("Could not move by diagonal from C8 to C7", e.getMessage());
-        } catch (Exception e) {
-            fail("Should throw ImpossibleMoveException");
-        }
+        logic.add(secondFigure);
+        OccupiedCellException exception = assertThrows(OccupiedCellException.class, () -> {
+            logic.move(start, dest);
+        });
+        assertThat(exception.getMessage()).isEqualTo("The cell is occupied by another figure.");
     }
 
-    @Test
-    public void testMoveOccupiedCell() {
-        Logic logic = new Logic();
-        Figure figure1 = new BishopBlack(Cell.C8);
-        Figure figure2 = new BishopBlack(Cell.D7);
-        logic.add(figure1);
-        logic.add(figure2);
-        try {
-            logic.move(Cell.C8, Cell.E6);
-            fail("Should throw OccupiedCellException");
-        } catch (OccupiedCellException e) {
-            assertEquals("The cell is occupied by another figure.", e.getMessage());
-        } catch (Exception e) {
-            fail("Should throw OccupiedCellException");
-        }
-    }
 }
